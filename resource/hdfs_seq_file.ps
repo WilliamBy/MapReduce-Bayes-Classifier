@@ -1,0 +1,11 @@
+hdfs dfs -mkdir /user/William/bayes/train
+hdfs dfs -mkdir /user/William/bayes/test
+hdfs dfs -put D:\Workspace\MapReduce-Bayes\resource\dataset\train bayes/train
+hdfs dfs -put D:\Workspace\MapReduce-Bayes\resource\dataset\test bayes/test
+
+hadoop jar "D:\JDKs\hadoop-3.3.5\share\hadoop\mapreduce\hadoop-mapreduce-client-jobclient-3.3.5.jar" `
+    org.apache.hadoop.tools.DistCp `
+    -D mapreduce.input.fileinputformat.input.dir.recursive=true `
+    -D mapreduce.input.fileinputformat.input.dir=/user/William/bayes/train `
+    -D mapreduce.output.fileoutputformat.compress=false `
+    /user/William/bayes/seqFiles/train
