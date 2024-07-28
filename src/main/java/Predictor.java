@@ -1,5 +1,4 @@
 import com.sun.istack.NotNull;
-import org.apache.hadoop.util.hash.Hash;
 
 import java.io.File;
 import java.io.IOException;
