@@ -3,33 +3,42 @@
 ## 理论基础
 
 **朴素贝叶斯公式**求后验概率
+
 $$
 P(c_i|d)=\frac{P(d|c_i)P(c_i)}{P(d)}
 $$
+
 其中 $d$ 为文档，$c_i$ 为分类。文档是词的合集，提取特征 $d=<t_1, t_2, ... ,t_n>$，即文档由n个词 *token*（可重复）组成。做**独立性假设**后公式可化简为：
+
 $$
 P(c_i|d)=\frac{\prod_{j=1}^{n} P(t_j|c_i)P(c_i)}{P(d)}
 $$
+
 由于需要知道的是文档最有可能的分类，因此实际上是求 $\arg\max_{c_i}P(c_i|d)$，又因为 $P(d)$ 不变，因此也就是求：
+
 $$
 \arg\max_{c_i}\prod_{j=1}^{n}P(t_j|c_i)P(c_i) \\
 \propto \arg\max_{c_i}(\sum_{j=1}^{n}\log{P(t_j|c_i)}+\log{P(c_i)})
 $$
-$P(t_j|c_i)$ 用词 $t_j$ 在类别 $c_i$ 的文档中的占比来**估计**，$P(c_i)$ 用类别 $c_i$ 的文档在所有文档中比重来**估计**。并且为了避免个别 $P(t_j|c_i)=0$ 导致错误，对单词频数加1进行平滑：
+
+$P(t_j|c_i)$ 用词 $t_j$ 在类别 $c_i$ 的文档中的占比来**估计**， $P(c_i)$ 用类别 $c_i$ 的文档在所有文档中比重来**估计**。并且为了避免个别 $P(t_j|c_i)=0$ 导致错误，对单词频数加1进行平滑：
+
 $$
+\begin{aligned}
 \hat{P}(t_j|c_i) & = \frac{N(t=t_j,\space c=c_i)+1}{\sum_{t_k \in V_i} (N(t=t_k,\space c=c_i)+1)} \\
 & = \frac{N(t=t_j,\space c=c_i)+1}{N(c=c_i)+|V_i|}
+\end{aligned}
 $$
 
 $$
 \hat{P}(c_i)=\frac{N(c_i)}{N}
 $$
 
-其中 $N(t=t_j,c=c_i)$ 为 $c_i$ 类文章中 $t_j$ 出现的次数， $V_i$ 为出现在所有类型为 $c_i$ 的文档中的单词集合（不重复），$|V_i|$ 为不重复单词数。
+其中 $N(t=t_j,c=c_i)$ 为 $c_i$ 类文章中 $t_j$ 出现的次数， $V_i$ 为出现在所有类型为 $c_i$ 的文档中的单词集合（不重复）， $|V_i|$ 为不重复单词数。
 
 ## 整体框架
 
-- Job1：统计$N(c=c_i)$
+- Job1：统计 $N(c=c_i)$
   - 输入训练集（分好类的文档，不同类别的文档在不同的目录中，目录名即为类别名）
   - `Mapper<Text, Writable, Text, Writable>`
     - 使用自定义的`InputFormat`，只读取文件所在目录名而不读取内容，并且规定split不会切分文件，防止统计冗余
@@ -45,15 +54,12 @@ $$
     - Value 输出取 `1` 即可
   - `Reducer< Text, List<IntWritable> >`
     - 输出`< 类别-单词, 总数 >`
-- Job3: 统计$|V_i|$
+- Job3: 统计 $|V_i|$
   - 输入job2的output
   - `Mapper<Text, IntWritable>`
     - RecordReader 读入每一行，Map成`<类别，个数>`
 
   - Reducer 输入`<类别, list{个数}>`，输出`<类别, 个数求和>`
-
-
-
 - Job3：测试
   - 输入测试集（待分类的文档）
   - 输出文档类别
